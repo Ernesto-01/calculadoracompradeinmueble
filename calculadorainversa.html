@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Valor de Propiedad Inverso</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Iconos de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .calculator button {
+            height: 60px;
+            font-size: 18px;
+        }
+        .clear-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light position-relative">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm position-relative">
+                    <button class="btn btn-danger clear-btn" onclick="borrarTodo()">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <div class="card-body">
+                        <h1 class="card-title text-center text-success">Calculadora Inversa de Costos</h1>
+                        <div class="mb-3">
+                            <label for="costoTotal" class="form-label">Introduce el costo total (US$):</label>
+                            <input type="number" class="form-control" id="costoTotal" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="porcentajeHonorarios" class="form-label">Introduce el porcentaje de honorarios del notario (%):</label>
+                            <input type="number" class="form-control" id="porcentajeHonorarios" step="0.01">
+                        </div>
+                        <div class="calculator mb-3">
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('1')">1</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('2')">2</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('3')">3</button>
+                            <button class="btn btn-outline-danger" onclick="borrar()">C</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('4')">4</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('5')">5</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('6')">6</button>
+                            <button class="btn btn-outline-secondary" onclick="calcularValorPropiedad()">Calcular</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('7')">7</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('8')">8</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('9')">9</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('0')">0</button>
+                        </div>
+                        <div id="resultados" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function agregarNumero(numero) {
+            const input = document.getElementById("costoTotal");
+            input.value += numero;
+        }
+
+        function borrar() {
+            document.getElementById("costoTotal").value = "";
+            document.getElementById("porcentajeHonorarios").value = "";
+        }
+
+        function borrarTodo() {
+            document.getElementById("costoTotal").value = "";
+            document.getElementById("porcentajeHonorarios").value = "";
+            document.getElementById("resultados").innerHTML = "";
+        }
+
+        function calcularValorPropiedad() {
+            // Obtener el costo total y el porcentaje de honorarios del usuario
+            let costoTotal = parseFloat(document.getElementById("costoTotal").value);
+            let porcentajeHonorarios = parseFloat(document.getElementById("porcentajeHonorarios").value) / 100;
+
+            if (isNaN(costoTotal) || isNaN(porcentajeHonorarios)) {
+                alert("Por favor, introduce números válidos.");
+                return;
+            }
+
+            // Configuración de tasas e importes
+            const importeExento = 28571.43;
+            const tasaImpuestoTransferencia = 0.03;
+            const tasaDerechosRegistro = 0.0063;
+
+            // Estimación del valor de la propiedad usando una fórmula iterativa para precisión
+            let valorPropiedadEstimado = costoTotal / (1 + tasaImpuestoTransferencia + tasaDerechosRegistro + porcentajeHonorarios);
+
+            // Ajustar iterativamente para mayor precisión
+            for (let i = 0; i < 10; i++) {
+                let excedente = Math.max(0, valorPropiedadEstimado - importeExento);
+                let impuestoTransferencia = excedente * tasaImpuestoTransferencia;
+                let derechosRegistro = valorPropiedadEstimado * tasaDerechosRegistro;
+                let honorariosNotario = valorPropiedadEstimado * porcentajeHonorarios;
+                let nuevoCostoTotal = valorPropiedadEstimado + impuestoTransferencia + derechosRegistro + honorariosNotario;
+                valorPropiedadEstimado -= (nuevoCostoTotal - costoTotal) / (1 + tasaImpuestoTransferencia + tasaDerechosRegistro + porcentajeHonorarios);
+            }
+
+            // Cálculo final
+            let excedente = Math.max(0, valorPropiedadEstimado - importeExento);
+            let impuestoTransferencia = excedente * tasaImpuestoTransferencia;
+            let derechosRegistro = valorPropiedadEstimado * tasaDerechosRegistro;
+            let honorariosNotario = valorPropiedadEstimado * porcentajeHonorarios;
+
+            // Mostrar los resultados
+            let resultadosHTML = `
+                <div class="alert alert-secondary">
+                    <p><strong>Costo Total Introducido:</strong> US$${costoTotal.toFixed(2)}</p>
+                    <p><strong>Valor Estimado de la Propiedad:</strong> US$${valorPropiedadEstimado.toFixed(2)}</p>
+                    <p><strong>Impuesto de Transferencia:</strong> US$${impuestoTransferencia.toFixed(2)}</p>
+                    <p><strong>Derechos de Registro:</strong> US$${derechosRegistro.toFixed(2)}</p>
+                    <p><strong>Honorarios del Notario:</strong> US$${honorariosNotario.toFixed(2)}</p>
+                </div>
+            `;
+
+            document.getElementById("resultados").innerHTML = resultadosHTML;
+        }
+    </script>
+</body>
+</html>
