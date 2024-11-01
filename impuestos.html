@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Costos de Propiedad</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Iconos de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .calculator button {
+            height: 60px;
+            font-size: 18px;
+        }
+        .clear-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light position-relative">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm position-relative">
+                    <button class="btn btn-danger clear-btn" onclick="borrarTodo()">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <div class="card-body">
+                        <h1 class="card-title text-center text-success">Calculadora de Costos de Propiedad</h1>
+                        <div class="mb-3">
+                            <label for="valorPropiedad" class="form-label">Introduce el valor de la propiedad (US$):</label>
+                            <input type="number" class="form-control" id="valorPropiedad" step="0.01">
+                        </div>
+                        <div class="calculator mb-3">
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('1')">1</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('2')">2</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('3')">3</button>
+                            <button class="btn btn-outline-danger" onclick="borrar()">C</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('4')">4</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('5')">5</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('6')">6</button>
+                            <button class="btn btn-outline-secondary" onclick="calcularCostos()">Calcular</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('7')">7</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('8')">8</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('9')">9</button>
+                            <button class="btn btn-outline-secondary" onclick="agregarNumero('0')">0</button>
+                        </div>
+                        <div id="resultados" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function agregarNumero(numero) {
+            const input = document.getElementById("valorPropiedad");
+            input.value += numero;
+        }
+
+        function agregarPunto() {
+            const input = document.getElementById("valorPropiedad");
+            if (!input.value.includes(".")) {
+                input.value += ".";
+            }
+        }
+
+        function borrar() {
+            document.getElementById("valorPropiedad").value = "";
+        }
+
+        function borrarTodo() {
+            document.getElementById("valorPropiedad").value = "";
+            document.getElementById("resultados").innerHTML = "";
+        }
+
+        function calcularCostos() {
+            // Obtener el valor de la propiedad del usuario
+            let valorPropiedad = parseFloat(document.getElementById("valorPropiedad").value);
+
+            if (isNaN(valorPropiedad)) {
+                alert("Por favor, introduce un número válido.");
+                return;
+            }
+
+            // Configuración de tasas e importes
+            const importeExento = 28571.43;
+            const tasaImpuestoTransferencia = 0.03;
+            const tasaDerechosRegistro = 0.63 / 100;
+            const tasaHonorariosNotarioMin = 0.01;
+            const tasaHonorariosNotarioMax = 0.015;
+
+            // Cálculo del impuesto de transferencia
+            let excedente = Math.max(0, valorPropiedad - importeExento);
+            let impuestoTransferencia = excedente * tasaImpuestoTransferencia;
+
+            // Cálculo de derechos de registro
+            let derechosRegistro = Math.floor(valorPropiedad / 100) * 0.63;
+
+            // Cálculo de honorarios del notario
+            let honorariosNotarioMin = valorPropiedad * tasaHonorariosNotarioMin;
+            let honorariosNotarioMax = valorPropiedad * tasaHonorariosNotarioMax;
+
+            // Cálculo de los costos totales
+            let costoTotalMin = valorPropiedad + impuestoTransferencia + derechosRegistro + honorariosNotarioMin;
+            let costoTotalMax = valorPropiedad + impuestoTransferencia + derechosRegistro + honorariosNotarioMax;
+
+            // Calcular los porcentajes
+            let otrosGastosMin = costoTotalMin - valorPropiedad;
+            let porcentajeMin = (otrosGastosMin / valorPropiedad) * 100;
+
+            let otrosGastosMax = costoTotalMax - valorPropiedad;
+            let porcentajeMax = (otrosGastosMax / valorPropiedad) * 100;
+
+            // Mostrar los resultados
+            let resultadosHTML = `
+                <div class="alert alert-secondary">
+                    <p><strong>Valor de la Propiedad:</strong> US$${valorPropiedad.toFixed(2)}</p>
+                    <p><strong>Impuesto de Transferencia:</strong> US$${impuestoTransferencia.toFixed(2)}</p>
+                    <p><strong>Derechos de Registro:</strong> US$${derechosRegistro.toFixed(2)}</p>
+                    <p><strong>Honorarios del Notario (Mín):</strong> US$${honorariosNotarioMin.toFixed(2)}</p>
+                    <p><strong>Honorarios del Notario (Máx):</strong> US$${honorariosNotarioMax.toFixed(2)}</p>
+                    <hr>
+                    <p><strong>Costo Total (Mín):</strong> US$${costoTotalMin.toFixed(2)}</p>
+                    <p><strong>Porcentaje de Otros Gastos (Mín):</strong> ${porcentajeMin.toFixed(2)}%</p>
+                    <hr>
+                    <p><strong>Costo Total (Máx):</strong> US$${costoTotalMax.toFixed(2)}</p>
+                    <p><strong>Porcentaje de Otros Gastos (Máx):</strong> ${porcentajeMax.toFixed(2)}%</p>
+                </div>
+            `;
+
+            document.getElementById("resultados").innerHTML = resultadosHTML;
+        }
+    </script>
+</body>
+</html>
